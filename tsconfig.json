@@ -9,7 +9,7 @@
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "esnext",
-    "rootDir": "./src",
+    "rootDir": "./",
     "outDir": "./dist",
     "types": ["node"],
     // For nodejs:

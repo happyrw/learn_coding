@@ -1,28 +1,24 @@
 import { Router } from "express";
+import prisma from "../lib/prisma.ts";
+// import prisma from "../lib/prisma.ts";
 
 const routes = Router();
 
-const users = [
-  { id: 1, name: "Alice", email: "alice@example.com", password: "password1" },
-  { id: 2, name: "Bob", email: "bob@example.com", password: "password2" },
-  {
-    id: 3,
-    name: "Charlie",
-    email: "charlie@example.com",
-    password: "password3",
-  },
-  { id: 4, name: "David", email: "david@example.com", password: "password4" },
-];
+type IdType = any;
 
 // Get all users
-routes.get("/", (req, res) => {
-  res.json(users);
+routes.get("/", async (req, res) => {
+  const users = await prisma.user.findMany();
+  res.status(200).json({ users, message: "Users retrieved successfully" });
 });
 
 // Get single user by id
-routes.get("/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const user = users.find((u) => u.id === id);
+routes.get("/:id", async (req, res) => {
+  const id: IdType = req.params.id;
+
+  const user = await prisma.user.findUnique({
+    where: { id },
+  });
   if (!user) {
     res.status(404).json({ message: "User not found" });
     return;
@@ -31,45 +27,66 @@ routes.get("/:id", (req, res) => {
 });
 
 // Add new user
-routes.post("/", (req, res) => {
-  const body = req.body;
-  const newUser = {
-    id: users.length + 1,
-    name: body.name,
-    email: body.email,
-    password: body.password,
-  };
-  users.push(newUser);
-  res.status(201).json({ users });
+routes.post("/", async (req, res) => {
+  const { name, email } = req.body;
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  });
+  if (existingUser) {
+    res.status(400).json({ message: "Email already exists" });
+    return;
+  }
+
+  const newUser = await prisma.user.create({
+    data: {
+      name,
+      email,
+    },
+  });
+
+  res.json({ user: newUser, message: "User created successfully" });
 });
 
 // Update user by id
-routes.put("/:id", (req, res) => {
-  const id = parseInt(req.params.id);
+routes.put("/:id", async (req, res) => {
+  const id: IdType = req.params.id;
   const body = req.body;
-  const user = users.find((u) => u.id === id);
+  const user = await prisma.user.findUnique({
+    where: { id },
+  });
   if (!user) {
     res.status(404).json({ message: "User not found" });
     return;
   }
 
-  user.name = body.name || user.name;
-  user.email = body.email || user.email;
-  user.password = body.password || user.password;
+  const updatedUser = await prisma.user.update({
+    where: { id },
+    data: {
+      name: body.name || user.name,
+      email: body.email || user.email,
+    },
+  });
 
-  res.json(user);
+  res.json(updatedUser);
 });
 
 // Delete user by id
-routes.delete("/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const userIndex = users.findIndex((u) => u.id === id);
-  if (userIndex === -1) {
+routes.delete("/:id", async (req, res) => {
+  const id: IdType = req.params.id;
+  const user = await prisma.user.findUnique({
+    where: { id },
+  });
+  if (!user) {
     res.status(404).json({ message: "User not found" });
     return;
   }
-  users.splice(userIndex, 1);
-  res.json({ message: "User deleted", users });
+
+  await prisma.user.delete({
+    where: { id },
+  });
+
+  res.json({ message: "User deleted" });
 });
 
 export default routes;
