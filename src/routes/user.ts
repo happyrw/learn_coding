@@ -1,5 +1,7 @@
 import { Router } from "express";
 import prisma from "../lib/prisma.ts";
+import { BadRequestError, NotFoundError } from "../errors/index.ts";
+import { asyncHandler } from "../middleware/asyncHandler.ts";
 // import prisma from "../lib/prisma.ts";
 
 const routes = Router();
@@ -20,8 +22,7 @@ routes.get("/:id", async (req, res) => {
     where: { id },
   });
   if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
+    throw new NotFoundError("User");
   }
   res.json(user);
 });
@@ -34,8 +35,7 @@ routes.post("/", async (req, res) => {
     where: { email },
   });
   if (existingUser) {
-    res.status(400).json({ message: "Email already exists" });
-    return;
+    throw new BadRequestError("Email already exists");
   }
 
   const newUser = await prisma.user.create({
@@ -56,8 +56,7 @@ routes.put("/:id", async (req, res) => {
     where: { id },
   });
   if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
+    throw new NotFoundError("User");
   }
 
   const updatedUser = await prisma.user.update({
@@ -72,21 +71,23 @@ routes.put("/:id", async (req, res) => {
 });
 
 // Delete user by id
-routes.delete("/:id", async (req, res) => {
-  const id: IdType = req.params.id;
-  const user = await prisma.user.findUnique({
-    where: { id },
-  });
-  if (!user) {
-    res.status(404).json({ message: "User not found" });
-    return;
-  }
+routes.delete(
+  "/:id",
+  asyncHandler(async (req, res) => {
+    const id: IdType = req.params.id;
+    const user = await prisma.user.findUnique({
+      where: { id },
+    });
+    if (!user) {
+      throw new NotFoundError("User");
+    }
 
-  await prisma.user.delete({
-    where: { id },
-  });
+    await prisma.user.delete({
+      where: { id },
+    });
 
-  res.json({ message: "User deleted" });
-});
+    res.json({ message: "User deleted" });
+  }),
+);
 
 export default routes;
