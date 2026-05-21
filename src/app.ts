@@ -1,5 +1,5 @@
 import express from "express";
-import userRoutes from "./routes/user.ts";
+import authRoutes from "./routes/auth.routes.ts";
 import { NotFoundError } from "./errors/index.ts";
 import { errorHandler } from "./middleware/errorHandler.ts";
 
@@ -8,7 +8,7 @@ const app = express();
 app.use(express.json());
 
 // All routes go here
-app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
 
 // 404 handler — must be after all routes
 app.use((req, res, next) => {
