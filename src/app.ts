@@ -10,6 +10,11 @@ app.use(express.json());
 // All routes go here
 app.use("/api/auth", authRoutes);
 
+// Root route — must be GET
+app.get("/", (req, res) => {
+  res.send("Welcome to the API");
+});
+
 // 404 handler — must be after all routes
 app.use((req, res, next) => {
   next(new NotFoundError(`Route ${req.method} ${req.path}`));

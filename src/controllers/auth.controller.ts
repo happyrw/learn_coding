@@ -34,7 +34,7 @@ export const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
+  if (!user || !user.password) {
     throw new ConflictError("Invalid credentials");
   }
 
