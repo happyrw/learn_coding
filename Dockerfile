@@ -37,6 +37,5 @@ COPY prisma/ ./prisma/
 COPY prisma.config.* ./
 USER node
 EXPOSE 3000
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
-
-    # // "start": "node dist/index.js",
+# // "start": "node dist/index.js",
+CMD ["npm", "start"]
