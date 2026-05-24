@@ -30,18 +30,11 @@ FROM node:22-alpine AS production
 
 WORKDIR /app
 
-# Copy package files
 COPY package.json package-lock.json ./
-
-# Install production dependencies only
 RUN npm ci --omit=dev --legacy-peer-deps
-
-# Copy compiled Javascript from the builder stage
 COPY --from=builder /app/dist ./dist
-
-# Run as non-root user for security
+COPY prisma/ ./prisma/
+COPY prisma.config.* ./
 USER node
-
 EXPOSE 3000
-
-CMD ["node", "dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
