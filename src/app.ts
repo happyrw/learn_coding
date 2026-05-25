@@ -2,8 +2,16 @@ import express from "express";
 import authRoutes from "./routes/auth.routes.ts";
 import { NotFoundError } from "./errors/index.ts";
 import { errorHandler } from "./middleware/errorHandler.ts";
+import cors from "cors";
 
 const app = express();
+
+app.use(
+  cors({
+    origin: ["http://localhost:3001", "https://your-frontend.vercel.app"],
+    credentials: true,
+  }),
+);
 
 app.use(express.json());
 
