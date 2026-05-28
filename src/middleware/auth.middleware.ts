@@ -7,10 +7,12 @@ export const authenticate = (
   res: Response,
   next: NextFunction,
 ) => {
-  const token = req.cookies.token;
-  if (!token) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     throw new UnauthorizedError("No token provided");
   }
+
+  const token = authHeader.split(" ")[1];
 
   try {
     const payload = verifyToken(token!);
