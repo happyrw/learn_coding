@@ -58,3 +58,26 @@ export const authUser = asyncHandler(async (req, res) => {
 
   res.json({ user: userWithoutPassword });
 });
+
+export const update = asyncHandler(async (req, res) => {
+  const { userId, email } = req.user!;
+  const { name, email: newEmail, password } = req.body;
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId, email },
+  });
+  if (!user) {
+    throw new ConflictError("User not found");
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      name: name || user.name,
+      email: newEmail || user.email,
+      password: password ? await bcrypt.hash(password, 10) : user.password,
+    },
+  });
+
+  res.json({ message: "User updated successfully" });
+});

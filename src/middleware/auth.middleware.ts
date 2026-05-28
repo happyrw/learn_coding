@@ -12,7 +12,7 @@ export const authenticate = (
     throw new UnauthorizedError("No token provided");
   }
 
-  const token = authHeader.split(" ")[1];
+  const token = req.cookies.token;
 
   try {
     const payload = verifyToken(token!);
